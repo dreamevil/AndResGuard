@@ -46,6 +46,7 @@ public class Configuration {
   private static final String ATTR_SIGNFILE_KEYPASS = "keypass";
   private static final String ATTR_SIGNFILE_STOREPASS = "storepass";
   private static final String ATTR_SIGNFILE_ALIAS = "alias";
+  private static final String ATTR_KEEP_SPEC_NAME = "keepspecname";
   public final HashMap<String, HashMap<String, HashSet<Pattern>>> mWhiteList;
   public final HashMap<String, HashMap<String, HashMap<String, String>>> mOldResMapping;
   public final HashMap<String, String> mOldFileMapping;
@@ -57,6 +58,7 @@ public class Configuration {
   public boolean mMergeDuplicatedRes = false;
   public String mMetaName = "META-INF";
   public String mFixedResName = null;
+  public boolean mKeepSpecName = false;
   public boolean mUseSignAPK = false;
   public boolean mUseKeepMapping = false;
   public File mSignatureFile;
@@ -138,6 +140,7 @@ public class Configuration {
     mMergeDuplicatedRes = param.mergeDuplicatedRes;
     mMetaName = param.metaName;
     mFixedResName = param.fixedResName;
+    mKeepSpecName = param.keepSpecName;
     for (String item : param.compressFilePattern) {
       mUseCompress = true;
       addToCompressPatterns(item);
@@ -421,6 +424,9 @@ public class Configuration {
               break;
             case ATTR_SIGNFILE:
               mMetaName = vaule.trim();
+              break;
+            case ATTR_KEEP_SPEC_NAME:
+              mKeepSpecName = vaule.equals("true");
               break;
             default:
               System.err.println("unknown tag " + tagName);

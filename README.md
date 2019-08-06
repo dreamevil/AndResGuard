@@ -41,6 +41,8 @@ andResGuard {
     mappingFile = null
     use7zip = true
     useSign = true
+    // If set, name column in arsc those need to proguard will be kept to the file name itself
+    keepSpecName = true
     // It will keep the origin path of your resources when it's true
     keepRoot = false
     // If set, name column in arsc those need to proguard will be kept to this value

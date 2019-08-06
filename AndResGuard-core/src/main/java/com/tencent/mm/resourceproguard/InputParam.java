@@ -12,6 +12,7 @@ public class InputParam {
   public final boolean useSign;
   public final String metaName;
   public final String fixedResName;
+  public final boolean keepSpecName;
   public final ArrayList<String> whiteList;
   public final ArrayList<String> compressFilePattern;
   public final String apkPath;
@@ -43,6 +44,7 @@ public class InputParam {
       String storepass,
       String metaName,
       String fixedResName,
+      boolean keepSpecName,
       String zipAlignPath,
       String sevenZipPath,
       SignatureType signatureType,
@@ -65,6 +67,7 @@ public class InputParam {
     this.storepass = storepass;
     this.metaName = metaName;
     this.fixedResName = fixedResName;
+    this.keepSpecName = keepSpecName;
     this.zipAlignPath = zipAlignPath;
     this.sevenZipPath = sevenZipPath;
     this.signatureType = signatureType;
@@ -93,6 +96,7 @@ public class InputParam {
     private String storepass;
     private String metaName;
     private String fixedResName;
+    private boolean keepSpecName;
     private String zipAlignPath;
     private String sevenZipPath;
     private SignatureType signatureType;
@@ -184,6 +188,11 @@ public class InputParam {
       return this;
     }
 
+    public Builder setKeepSpecName(boolean keepSpecName) {
+      this.keepSpecName = keepSpecName;
+      return this;
+    }
+
     public Builder setZipAlign(String zipAlignPath) {
       this.zipAlignPath = zipAlignPath;
       return this;
@@ -235,6 +244,7 @@ public class InputParam {
           storepass,
           metaName,
           fixedResName,
+          keepSpecName,
           zipAlignPath,
           sevenZipPath,
           signatureType,

@@ -58,7 +58,7 @@ import java.util.regex.Pattern;
 
 public class ARSCDecoder {
 
-  private final static boolean DEBUG = false;
+  private final static boolean DEBUG = true;
 
   private final static short ENTRY_FLAG_COMPLEX = 0x0001;
   private static final Logger LOGGER = Logger.getLogger(ARSCDecoder.class.getName());
@@ -648,11 +648,18 @@ public class ARSCDecoder {
       throw new AndrolibException("readEntry replaceString == null");
     }
     generalResIDMapping(mPkg.getName(), mType.getName(), mSpecNames.get(specNamesId).toString(), replaceString);
+    if (DEBUG) {
+      System.out.printf("dealWithNonWhiteList ,typeName %s, specName :%s , replaceString :%s\n", mType.getName(), mSpecNames.get(specNamesId), replaceString);
+    }
     mPkg.putSpecNamesReplace(mResId, replaceString);
-    // arsc name列混淆成固定名字, 减少string pool大小
-    boolean useFixedName = config.mFixedResName != null && config.mFixedResName.length() > 0;
-    String fixedName = useFixedName ? config.mFixedResName : replaceString;
-    mPkg.putSpecNamesblock(fixedName, replaceString);
+    if (config.mKeepSpecName) {
+      mPkg.putSpecNamesblock(mSpecNames.get(specNamesId).toString(), replaceString);
+    } else {
+      // arsc name列混淆成固定名字, 减少string pool大小
+      boolean useFixedName = config.mFixedResName != null && config.mFixedResName.length() > 0;
+      String fixedName = useFixedName ? config.mFixedResName : replaceString;
+      mPkg.putSpecNamesblock(fixedName, replaceString);
+    }
     mType.putSpecResguardName(replaceString);
   }
 
@@ -665,6 +672,9 @@ public class ARSCDecoder {
     ResPackage pkg = mPkgs[mCurPackageID];
     if (pkg.isCanResguard()) {
       specNamesId = mCurSpecNameToPos.get(pkg.getSpecRepplace(mResId));
+      if (DEBUG) {
+        System.out.println("writeEntry  specReplace " + pkg.getSpecRepplace(mResId));
+      }
       if (specNamesId < 0) {
         throw new AndrolibException(String.format("writeEntry new specNamesId < 0 %d", specNamesId));
       }
