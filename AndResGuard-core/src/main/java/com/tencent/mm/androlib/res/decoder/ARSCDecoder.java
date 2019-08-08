@@ -623,44 +623,49 @@ public class ARSCDecoder {
   private void dealWithNonWhiteList(int specNamesId, Configuration config) throws AndrolibException, IOException {
     String replaceString = null;
     boolean keepMapping = false;
-    if (config.mUseKeepMapping) {
-      String packName = mPkg.getName();
-      if (config.mOldResMapping.containsKey(packName)) {
-        HashMap<String, HashMap<String, String>> typeMaps = config.mOldResMapping.get(packName);
-        String typeName = mType.getName();
-        if (typeMaps.containsKey(typeName)) {
-          HashMap<String, String> nameMap = typeMaps.get(typeName);
-          String specName = mSpecNames.get(specNamesId).toString();
-          if (nameMap.containsKey(specName)) {
-            keepMapping = true;
-            replaceString = nameMap.get(specName);
+    if (config.mKeepSpecName) {
+      mResguardBuilder.setInReplaceList(mCurEntryID);
+      String specName = mSpecNames.get(specNamesId).toString();
+      mPkg.putSpecNamesReplace(mResId, specName);
+      mPkg.putSpecNamesblock(specName, specName);
+      mType.putSpecResguardName(specName);
+    } else {
+      if (config.mUseKeepMapping) {
+        String packName = mPkg.getName();
+        if (config.mOldResMapping.containsKey(packName)) {
+          HashMap<String, HashMap<String, String>> typeMaps = config.mOldResMapping.get(packName);
+          String typeName = mType.getName();
+          if (typeMaps.containsKey(typeName)) {
+            HashMap<String, String> nameMap = typeMaps.get(typeName);
+            String specName = mSpecNames.get(specNamesId).toString();
+            if (nameMap.containsKey(specName)) {
+              keepMapping = true;
+              replaceString = nameMap.get(specName);
+            }
           }
         }
       }
-    }
 
-    if (!keepMapping) {
-      replaceString = mResguardBuilder.getReplaceString();
-    }
+      if (!keepMapping) {
+        replaceString = mResguardBuilder.getReplaceString();
+      }
 
-    mResguardBuilder.setInReplaceList(mCurEntryID);
-    if (replaceString == null) {
-      throw new AndrolibException("readEntry replaceString == null");
-    }
-    generalResIDMapping(mPkg.getName(), mType.getName(), mSpecNames.get(specNamesId).toString(), replaceString);
-    if (DEBUG) {
-      System.out.printf("dealWithNonWhiteList ,typeName %s, specName :%s , replaceString :%s\n", mType.getName(), mSpecNames.get(specNamesId), replaceString);
-    }
-    mPkg.putSpecNamesReplace(mResId, replaceString);
-    if (config.mKeepSpecName) {
-      mPkg.putSpecNamesblock(mSpecNames.get(specNamesId).toString(), replaceString);
-    } else {
+      mResguardBuilder.setInReplaceList(mCurEntryID);
+      if (replaceString == null) {
+        throw new AndrolibException("readEntry replaceString == null");
+      }
+      generalResIDMapping(mPkg.getName(), mType.getName(), mSpecNames.get(specNamesId).toString(), replaceString);
+      if (DEBUG) {
+        System.out.printf("dealWithNonWhiteList ,typeName %s, specName :%s , replaceString :%s\n", mType.getName(), mSpecNames.get(specNamesId), replaceString);
+      }
+
       // arsc name列混淆成固定名字, 减少string pool大小
       boolean useFixedName = config.mFixedResName != null && config.mFixedResName.length() > 0;
       String fixedName = useFixedName ? config.mFixedResName : replaceString;
       mPkg.putSpecNamesblock(fixedName, replaceString);
+      mPkg.putSpecNamesReplace(mResId, replaceString);
+      mType.putSpecResguardName(replaceString);
     }
-    mType.putSpecResguardName(replaceString);
   }
 
   private void writeEntry() throws IOException, AndrolibException {
@@ -672,9 +677,6 @@ public class ARSCDecoder {
     ResPackage pkg = mPkgs[mCurPackageID];
     if (pkg.isCanResguard()) {
       specNamesId = mCurSpecNameToPos.get(pkg.getSpecRepplace(mResId));
-      if (DEBUG) {
-        System.out.println("writeEntry  specReplace " + pkg.getSpecRepplace(mResId));
-      }
       if (specNamesId < 0) {
         throw new AndrolibException(String.format("writeEntry new specNamesId < 0 %d", specNamesId));
       }
