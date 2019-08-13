@@ -25,8 +25,8 @@ import java.util.Set;
 public class ResPackage {
   private final String mName;
 
-  private final Map<Integer, String> mSpecNamesReplace;
-  private final Map<String, Set<String>> mSpecNamesBlock;
+  private final Map<Integer, TypeAndReplaceName> mSpecNamesReplace;
+  private final Map<String, Set<TypeAndReplaceName>> mSpecNamesBlock;
   private boolean mCanProguard = false;
 
   public ResPackage(int id, String name) {
@@ -43,20 +43,20 @@ public class ResPackage {
     mCanProguard = set;
   }
 
-  public boolean hasSpecRepplace(String resID) {
+  public boolean hasSpecRepplace(int resID) {
     return mSpecNamesReplace.containsKey(resID);
   }
 
-  public String getSpecRepplace(int resID) {
+  public TypeAndReplaceName getSpecRepplace(int resID) {
     return mSpecNamesReplace.get(resID);
   }
 
-  public void putSpecNamesReplace(int resID, String value) {
+  public void putSpecNamesReplace(int resID, TypeAndReplaceName value) {
     mSpecNamesReplace.put(resID, value);
   }
 
-  public void putSpecNamesblock(String specName, String value) {
-    Set<String> values = mSpecNamesBlock.get(specName);
+  public void putSpecNamesblock(String specName, TypeAndReplaceName value) {
+    Set<TypeAndReplaceName> values = mSpecNamesBlock.get(specName);
     if (values == null) {
       values = new HashSet<>();
       mSpecNamesBlock.put(specName, values);
@@ -64,7 +64,7 @@ public class ResPackage {
     values.add(value);
   }
 
-  public Map<String, Set<String>> getSpecNamesBlock() {
+  public Map<String, Set<TypeAndReplaceName>> getSpecNamesBlock() {
     return mSpecNamesBlock;
   }
 

@@ -23,6 +23,7 @@ import com.tencent.mm.androlib.AndrolibException;
 import com.tencent.mm.androlib.ApkDecoder;
 import com.tencent.mm.androlib.res.data.ResPackage;
 import com.tencent.mm.androlib.res.data.ResType;
+import com.tencent.mm.androlib.res.data.TypeAndReplaceName;
 import com.tencent.mm.androlib.res.util.StringUtil;
 import com.tencent.mm.resourceproguard.Configuration;
 import com.tencent.mm.util.ExtDataInput;
@@ -58,7 +59,7 @@ import java.util.regex.Pattern;
 
 public class ARSCDecoder {
 
-  private final static boolean DEBUG = true;
+  final static boolean DEBUG = false;
 
   private final static short ENTRY_FLAG_COMPLEX = 0x0001;
   private static final Logger LOGGER = Logger.getLogger(ARSCDecoder.class.getName());
@@ -67,7 +68,7 @@ public class ARSCDecoder {
   public static Map<Integer, String> mTableStringsResguard = new LinkedHashMap<>();
   public static int mMergeDuplicatedResCount = 0;
   private final Map<String, String> mOldFileName;
-  private final Map<String, Integer> mCurSpecNameToPos;
+  private final Map<TypeAndReplaceName, Integer> mCurSpecNameToPos;
   private final HashSet<String> mShouldResguardTypeSet;
   private final ApkDecoder mApkDecoder;
   private ExtDataInput mIn;
@@ -607,8 +608,13 @@ public class ARSCDecoder {
             if (DEBUG) {
               System.out.printf("[match] matcher %s ,typeName %s, specName :%s\n", p.pattern(), typeName, specName);
             }
-            mPkg.putSpecNamesReplace(mResId, specName);
-            mPkg.putSpecNamesblock(specName, specName);
+            TypeAndReplaceName typeAndReplaceName = new TypeAndReplaceName();
+            typeAndReplaceName.mReplaceName = specName;
+            typeAndReplaceName.mTypeName = typeName;
+            mPkg.putSpecNamesReplace(mResId, typeAndReplaceName);
+//            mPkg.putSpecNamesReplace(mResId, specName);
+//            mPkg.putSpecNamesblock(specName, specName);
+            mPkg.putSpecNamesblock(specName, typeAndReplaceName);
             mResguardBuilder.setInWhiteList(mCurEntryID);
 
             mType.putSpecResguardName(specName);
@@ -624,11 +630,24 @@ public class ARSCDecoder {
     String replaceString = null;
     boolean keepMapping = false;
     if (config.mKeepSpecName) {
+      replaceString = mResguardBuilder.getReplaceString();
       mResguardBuilder.setInReplaceList(mCurEntryID);
       String specName = mSpecNames.get(specNamesId).toString();
-      mPkg.putSpecNamesReplace(mResId, specName);
-      mPkg.putSpecNamesblock(specName, specName);
-      mType.putSpecResguardName(specName);
+
+      generalResIDMapping(mPkg.getName(), mType.getName(), specName, replaceString);
+
+      TypeAndReplaceName typeAndReplaceName = new TypeAndReplaceName();
+      typeAndReplaceName.mReplaceName = replaceString;
+      typeAndReplaceName.mTypeName = mType.getName();
+      mPkg.putSpecNamesReplace(mResId, typeAndReplaceName);
+//      mPkg.putSpecNamesReplace(mResId, replaceString);
+//      mPkg.putSpecNamesblock(specName, replaceString);
+      mPkg.putSpecNamesblock(specName, typeAndReplaceName);
+      mType.putSpecResguardName(replaceString);
+      if (DEBUG) {
+        System.out.printf("dealWithNonWhiteList ,typeName %s, specNameId: %d , specName :%s , replaceString :%s , resId %x\n", mType.getName(), specNamesId, mSpecNames.get(specNamesId), replaceString
+        , mResId);
+      }
     } else {
       if (config.mUseKeepMapping) {
         String packName = mPkg.getName();
@@ -662,8 +681,13 @@ public class ARSCDecoder {
       // arsc name列混淆成固定名字, 减少string pool大小
       boolean useFixedName = config.mFixedResName != null && config.mFixedResName.length() > 0;
       String fixedName = useFixedName ? config.mFixedResName : replaceString;
-      mPkg.putSpecNamesblock(fixedName, replaceString);
-      mPkg.putSpecNamesReplace(mResId, replaceString);
+      TypeAndReplaceName typeAndReplaceName = new TypeAndReplaceName();
+      typeAndReplaceName.mReplaceName = fixedName;
+      typeAndReplaceName.mTypeName = mType.getName();
+//      mPkg.putSpecNamesblock(fixedName, replaceString);
+      mPkg.putSpecNamesblock(fixedName, typeAndReplaceName);
+//      mPkg.putSpecNamesReplace(mResId, replaceString);
+      mPkg.putSpecNamesReplace(mResId, typeAndReplaceName);
       mType.putSpecResguardName(replaceString);
     }
   }
@@ -677,6 +701,9 @@ public class ARSCDecoder {
     ResPackage pkg = mPkgs[mCurPackageID];
     if (pkg.isCanResguard()) {
       specNamesId = mCurSpecNameToPos.get(pkg.getSpecRepplace(mResId));
+      if (DEBUG) {
+        System.out.printf("writeEntry replaceName: %s resId: %x specNameId: %d\n", pkg.getSpecRepplace(mResId), mResId, specNamesId);
+      }
       if (specNamesId < 0) {
         throw new AndrolibException(String.format("writeEntry new specNamesId < 0 %d", specNamesId));
       }
@@ -733,7 +760,8 @@ public class ARSCDecoder {
         String raw = mTableStrings.get(data).toString();
         if (StringUtil.isBlank(raw) || raw.equalsIgnoreCase("null")) return;
 
-        String proguard = mPkg.getSpecRepplace(mResId);
+//        String proguard = mPkg.getSpecRepplace(mResId);
+        String proguard = mPkg.getSpecRepplace(mResId).mReplaceName;
         //这个要写死这个，因为resources.arsc里面就是用这个
         int secondSlash = raw.lastIndexOf("/");
         if (secondSlash == -1) {

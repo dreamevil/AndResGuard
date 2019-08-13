@@ -18,6 +18,7 @@
 package com.tencent.mm.androlib.res.decoder;
 
 import com.tencent.mm.androlib.AndrolibException;
+import com.tencent.mm.androlib.res.data.TypeAndReplaceName;
 import com.tencent.mm.util.ExtDataInput;
 import com.tencent.mm.util.ExtDataOutput;
 import java.io.IOException;
@@ -31,6 +32,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static com.tencent.mm.androlib.res.decoder.ARSCDecoder.DEBUG;
 
 /**
  * @author shwenzhang
@@ -104,7 +107,7 @@ public class StringBlock {
   }
 
   public static int writeSpecNameStringBlock(
-          ExtDataInput reader, ExtDataOutput out, Map<String, Set<String>> specNames, Map<String, Integer> curSpecNameToPos)
+          ExtDataInput reader, ExtDataOutput out, Map<String, Set<TypeAndReplaceName>> specNames, Map<TypeAndReplaceName, Integer> curSpecNameToPos)
       throws IOException, AndrolibException {
     int type = reader.readInt();
     int chunkSize = reader.readInt();
@@ -148,9 +151,12 @@ public class StringBlock {
     for (Iterator<String> it = specNames.keySet().iterator(); it.hasNext(); ) {
       stringOffsets[i] = offset;
       String name = it.next();
-      for (String specName : specNames.get(name)) {
+      for (TypeAndReplaceName specName : specNames.get(name)) {
         // N res entry item point to one string constant
         curSpecNameToPos.put(specName, i);
+        if (DEBUG) {
+          System.out.printf("writeSpecNameStringBlock replaceName : %s , specName: %s , specNameId: %d\n", specName, name, i);
+        }
       }
       if (isUTF8) {
         stringBytes[offset++] = (byte) name.length();
