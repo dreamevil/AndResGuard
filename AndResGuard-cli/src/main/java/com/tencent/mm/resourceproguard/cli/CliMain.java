@@ -21,6 +21,7 @@ public class CliMain extends Main {
   private static final String ARG_HELP = "--help";
   private static final String ARG_OUT = "-out";
   private static final String ARG_FINAL_APK_PATH = "-finalApkPath";
+  private static final String ARG_FINAL_RES_MAPPING_PATH = "-finalResMappingPath";
   private static final String ARG_CONFIG = "-config";
   private static final String ARG_7ZIP = "-7zip";
   private static final String ARG_ZIPALIGN = "-zipalign";
@@ -219,6 +220,7 @@ public class CliMain extends Main {
       final String signedFile = readArgs.getSignedFile();
       final File outputFile = readArgs.getOutputFile();
       final File finalApkFile = readArgs.getFinalApkFile();
+      final File finalResMappingFile = readArgs.getFinalResMappingFile();
       final String apkFileName = readArgs.getApkFileName();
       final InputParam.SignatureType signatureType = readArgs.getSignatureType();
       loadConfigFromXml(configFile, signatureFile, mappingFile, keypass, storealias, storepass);
@@ -240,7 +242,7 @@ public class CliMain extends Main {
         return;
       }
       System.out.printf("[AndResGuard] begin: %s, %s, %s\n", outputFile, finalApkFile, apkFileName);
-      resourceProguard(outputFile, finalApkFile, apkFileName, signatureType);
+      resourceProguard(outputFile, finalApkFile, finalResMappingFile, apkFileName, signatureType);
       System.out.printf("[AndResGuard] done, total time cost: %fs\n", diffTimeFromBegin());
       System.out.printf("[AndResGuard] done, you can go to file to find the output %s\n", mOutDir.getAbsolutePath());
       clean();
@@ -295,6 +297,7 @@ public class CliMain extends Main {
     private File configFile;
     private File outputFile;
     private File finalApkFile;
+    private File finalResMappingFile;
     private String apkFileName;
     private File signatureFile;
     private File mappingFile;
@@ -322,6 +325,14 @@ public class CliMain extends Main {
 
     public String getApkFileName() {
       return apkFileName;
+    }
+
+    public File getFinalResMappingFile() {
+      return finalResMappingFile;
+    }
+
+    public void setFinalResMappingFile(File finalResMappingFile) {
+      this.finalResMappingFile = finalResMappingFile;
     }
 
     public File getSignatureFile() {
@@ -390,6 +401,17 @@ public class CliMain extends Main {
             parent.mkdirs();
           }
           System.out.printf("special final apk file path: %s\n", finalApkFile.getAbsolutePath());
+        } else if (arg.equals(ARG_FINAL_RES_MAPPING_PATH)) {
+          if (index == args.length - 1) {
+            System.err.println("Missing output res mapping file argument");
+            goToError();
+          }
+          finalResMappingFile = new File(args[++index]);
+          File parent = finalResMappingFile.getParentFile();
+          if (parent != null && (!parent.exists())) {
+            parent.mkdirs();
+          }
+          System.out.printf("special final res mapping file path: %s\n", finalResMappingFile.getAbsolutePath());
         } else if (arg.equals(ARG_SIGNATURE)) {
           //需要检查是否有四个参数
           if (index == args.length - 1) {

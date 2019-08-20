@@ -52,10 +52,13 @@ public class Main {
       File finalApkFile = StringUtil.isPresent(inputParam.finalApkBackupPath) ?
           new File(inputParam.finalApkBackupPath)
           : null;
-
+      File finalResMappingFile = StringUtil.isPresent(inputParam.finalResMappingBackupPath) ?
+              new File(inputParam.finalResMappingBackupPath)
+              : null;
       resourceProguard(
           new File(inputParam.outFolder),
           finalApkFile,
+          finalResMappingFile,
           inputParam.apkPath,
           inputParam.signatureType,
           inputParam.minSDKVersion
@@ -80,12 +83,12 @@ public class Main {
   }
 
   protected void resourceProguard(
-      File outputDir, File outputFile, String apkFilePath, InputParam.SignatureType signatureType) {
-    resourceProguard(outputDir, outputFile, apkFilePath, signatureType, 14 /*default min sdk*/);
+      File outputDir, File outputFile, File outputResMappingFile, String apkFilePath, InputParam.SignatureType signatureType) {
+    resourceProguard(outputDir, outputFile, outputResMappingFile, apkFilePath, signatureType, 14 /*default min sdk*/);
   }
 
   protected void resourceProguard(
-      File outputDir, File outputFile, String apkFilePath, InputParam.SignatureType signatureType, int minSDKVersoin) {
+      File outputDir, File outputFile, File outputResMappingFile, String apkFilePath, InputParam.SignatureType signatureType, int minSDKVersoin) {
     File apkFile = new File(apkFilePath);
     if (!apkFile.exists()) {
       System.err.printf("The input apk %s does not exist", apkFile.getAbsolutePath());
@@ -96,7 +99,7 @@ public class Main {
       ApkDecoder decoder = new ApkDecoder(config, apkFile);
       /* 默认使用V1签名 */
       decodeResource(outputDir, decoder, apkFile);
-      buildApk(decoder, apkFile, outputFile, signatureType, minSDKVersoin);
+      buildApk(decoder, apkFile, outputFile, outputResMappingFile, signatureType, minSDKVersoin);
     } catch (Exception e) {
       e.printStackTrace();
       goToError();
@@ -115,7 +118,7 @@ public class Main {
   }
 
   private void buildApk(
-      ApkDecoder decoder, File apkFile, File outputFile, InputParam.SignatureType signatureType, int minSDKVersion)
+      ApkDecoder decoder, File apkFile, File outputFile, File outputResMappingFile, InputParam.SignatureType signatureType, int minSDKVersion)
       throws Exception {
     ResourceApkBuilder builder = new ResourceApkBuilder(config);
     String apkBasename = apkFile.getName();
@@ -130,6 +133,7 @@ public class Main {
         builder.buildApkWithV2sign(decoder.getCompressData(), minSDKVersion);
         break;
     }
+    builder.copyResMappingFile(decoder.getResMappingFile(), outputResMappingFile);
   }
 
   protected void goToError() {

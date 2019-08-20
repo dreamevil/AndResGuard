@@ -25,6 +25,7 @@ public class InputParam {
   public final String sevenZipPath;
   public final SignatureType signatureType;
   public final String finalApkBackupPath;
+  public final String finalResMappingBackupPath;
   public final String digestAlg;
   public final int minSDKVersion;
 
@@ -49,6 +50,7 @@ public class InputParam {
       String sevenZipPath,
       SignatureType signatureType,
       String finalApkBackupPath,
+      String finalResMappingBackupPath,
       String digestAlg,
       int minSDKVersion) {
 
@@ -72,6 +74,7 @@ public class InputParam {
     this.sevenZipPath = sevenZipPath;
     this.signatureType = signatureType;
     this.finalApkBackupPath = finalApkBackupPath;
+    this.finalResMappingBackupPath = finalResMappingBackupPath;
     this.digestAlg = digestAlg;
     this.minSDKVersion = minSDKVersion;
   }
@@ -101,6 +104,7 @@ public class InputParam {
     private String sevenZipPath;
     private SignatureType signatureType;
     private String finalApkBackupPath;
+    private String finalResMappingBackupPath;
     private String digestAlg;
     private int minSDKVersion;
 
@@ -213,6 +217,14 @@ public class InputParam {
       return this;
     }
 
+    public String getFinalResMappingBackupPath() {
+      return finalResMappingBackupPath;
+    }
+
+    public void setFinalResMappingBackupPath(String finalResMappingBackupPath) {
+      this.finalResMappingBackupPath = finalResMappingBackupPath;
+    }
+
     public Builder setDigestAlg(String digestAlg) {
       if (StringUtil.isPresent(digestAlg)) {
         this.digestAlg = digestAlg;
@@ -249,6 +261,7 @@ public class InputParam {
           sevenZipPath,
           signatureType,
           finalApkBackupPath,
+          finalResMappingBackupPath,
           digestAlg,
           minSDKVersion
       );

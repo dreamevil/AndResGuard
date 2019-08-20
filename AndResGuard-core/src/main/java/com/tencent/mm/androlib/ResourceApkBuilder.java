@@ -390,4 +390,11 @@ public class ResourceApkBuilder {
     String cmd = Utils.isPresent(config.m7zipPath) ? config.m7zipPath : TypedValue.COMMAND_7ZIP;
     Utils.runCmd(cmd, "a", "-tzip", outSevenZipApk.getAbsolutePath(), path, "-mx9");
   }
+
+  public void copyResMappingFile(File resMappingFile, File finalMappingFile) throws IOException {
+    if (resMappingFile != null && resMappingFile.exists() && finalMappingFile != null) {
+      System.out.println(String.format("Backup Final Res Mapping File to %s", finalMappingFile));
+      FileOperation.copyFileUsingStream(resMappingFile, finalMappingFile);
+    }
+  }
 }
